@@ -23,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   List<String> skills = [];
   String linkedIn = '';
   String twitter = '';
+  bool _isEditing = false;
 
   Future<void> _pickImage() async {
     final pickedFile =
@@ -36,8 +37,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _saveProfile() {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isEditing = false;
+      });
       ScaffoldMessenger.of(context)
           .showSnackBar(const SnackBar(content: Text('Profile saved!')));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please give valid inputs!')));
     }
   }
 
@@ -53,6 +60,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('Profile'),
         actions: [
+          IconButton(
+            icon: Icon(_isEditing ? Icons.save : Icons.edit),
+            onPressed: () {
+              if (_isEditing) {
+                _saveProfile();
+              } else {
+                _isEditing = true;
+                setState(() {});
+              }
+            },
+          ),
           IconButton(
             icon: Icon(
               context.watch<ThemeNotifier>().isDarkMode
@@ -108,6 +126,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 decoration: const InputDecoration(labelText: 'Bio'),
                 maxLines: 3,
                 onChanged: (value) => bio = value,
+                enabled: _isEditing,
               ),
               const SizedBox(height: 20),
               _buildSkillsField(),
@@ -120,10 +139,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onChanged: (value) => twitter = value,
                   textInputType: TextInputType.url),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _saveProfile,
-                child: const Text('Save Profile'),
-              ),
+              if (_isEditing)
+                ElevatedButton(
+                  onPressed: _saveProfile,
+                  child: const Text('Save Profile'),
+                ),
             ],
           ),
         ),
@@ -141,6 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       decoration: InputDecoration(labelText: label),
       onChanged: onChanged,
       validator: validator,
+      enabled: _isEditing,
     );
   }
 
@@ -165,6 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               }
             });
           },
+          enabled: _isEditing,
           decoration: const InputDecoration(labelText: 'Add a skill'),
         ),
       ],
